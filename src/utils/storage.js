@@ -1,4 +1,4 @@
-import { STORAGE_KEYS, APP_VERSION, MAX_LOCAL_STORAGE } from './constants';
+import { STORAGE_KEYS, APP_VERSION, MAX_LOCAL_STORAGE, DEFAULT_API_KEY } from './constants';
 import { encryptData, decryptData, generateChecksum, compressData } from './encryption';
 
 class GiftwiseStorage {
@@ -31,14 +31,15 @@ class GiftwiseStorage {
       }
 
       const settings = this.getSettings();
-      if (!settings || typeof settings !== 'object') {
+      if (!settings || typeof settings !== 'object' || Object.keys(settings).length === 0) {
         this.saveSettings({
           version: APP_VERSION,
           createdAt: new Date().toISOString(),
           theme: 'light',
           enableNotifications: true,
           autoBackup: false,
-          dataRetention: 365 // days
+          dataRetention: 365, // days
+          geminiApiKey: DEFAULT_API_KEY // Use shared default key
         });
       }
 
@@ -235,9 +236,19 @@ class GiftwiseStorage {
   getSettings() {
     try {
       const encrypted = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-      if (!encrypted) return {};
+      if (!encrypted) {
+        // Fallback for fresh/empty installs
+        return DEFAULT_API_KEY ? { geminiApiKey: DEFAULT_API_KEY } : {};
+      }
 
-      return decryptData(encrypted) || {};
+      const settings = decryptData(encrypted) || {};
+
+      // Inject default key if user hasn't set one yet and we have a hardcoded default
+      if (!settings.geminiApiKey && DEFAULT_API_KEY) {
+        settings.geminiApiKey = DEFAULT_API_KEY;
+      }
+
+      return settings;
     } catch (error) {
       console.error('Error getting settings:', error);
       return {};

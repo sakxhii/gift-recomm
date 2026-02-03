@@ -10,8 +10,7 @@ import ocrService from '../../services/ocrService';
 import { useProfiles } from '../../hooks/useLocalStorage';
 import HelpModal from '../Common/HelpModal';
 import { useAlert } from '../Common/Alert';
-
-
+import storage from '../../utils/storage';
 
 const UploadCard = () => {
   const navigate = useNavigate();
@@ -40,6 +39,17 @@ const UploadCard = () => {
   // Initialize OCR service on mount
   useEffect(() => {
     const initOCR = async () => {
+      // Check for Gemini API key first
+      const settings = storage.getSettings();
+      if (settings && settings.geminiApiKey) {
+        setOcrStatus('gemini');
+        // Still try to init Tesseract in background as fallback
+        if (!ocrService.isInitialized) {
+          ocrService.initialize().catch(console.warn);
+        }
+        return;
+      }
+
       try {
         const success = await ocrService.initialize();
         setOcrStatus(success ? 'ready' : 'mock');
@@ -54,7 +64,13 @@ const UploadCard = () => {
     if (!ocrService.isInitialized) {
       initOCR();
     } else {
-      setOcrStatus('ready');
+      // Double check if we should upgrade status to gemini
+      const settings = storage.getSettings();
+      if (settings && settings.geminiApiKey) {
+        setOcrStatus('gemini');
+      } else {
+        setOcrStatus('ready');
+      }
     }
 
     // Cleanup on unmount
@@ -464,22 +480,25 @@ const UploadCard = () => {
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">OCR Engine</span>
                     <span className="text-sm font-medium text-primary-600">
-                      {ocrStatus === 'mock' ? 'Mock Mode' : 'Tesseract.js'}
+                      {ocrStatus === 'mock' ? 'Mock Mode' :
+                        ocrStatus === 'gemini' ? 'Gemini AI Vision' : 'Tesseract.js'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Status</span>
-                    <span className={`text-sm font-medium ${ocrStatus === 'ready'
-                        ? 'text-green-600'
-                        : ocrStatus === 'mock'
-                          ? 'text-yellow-600'
-                          : 'text-blue-600'
+                    <span className={`text-sm font-medium ${ocrStatus === 'ready' || ocrStatus === 'gemini'
+                      ? 'text-green-600'
+                      : ocrStatus === 'mock'
+                        ? 'text-yellow-600'
+                        : 'text-blue-600'
                       }`}>
                       {ocrStatus === 'ready'
                         ? 'Ready'
-                        : ocrStatus === 'mock'
-                          ? 'Using Mock Data'
-                          : 'Initializing...'}
+                        : ocrStatus === 'gemini'
+                          ? 'Online (Cloud)'
+                          : ocrStatus === 'mock'
+                            ? 'Using Mock Data'
+                            : 'Initializing...'}
                     </span>
                   </div>
 

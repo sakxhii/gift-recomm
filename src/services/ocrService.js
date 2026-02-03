@@ -45,8 +45,9 @@ class OCRService {
 
       this.worker = await Promise.race([initPromise, timeoutPromise]);
 
-      await this.worker.load();
-      await this.worker.initialize('eng');
+      // Tesseract.js v5+ workers are pre-loaded and pre-initialized
+      // await this.worker.load();      // DEPRECATED in v5
+      // await this.worker.initialize('eng'); // DEPRECATED in v5
 
       this.isInitialized = true;
       this.initializationError = null;
@@ -138,44 +139,37 @@ class OCRService {
     return this.getMockOCRResult(imageFile);
   }
 
-  async getValidGeminiModel(apiKey) {
-    // 1. Check Cache first to save API calls
-    const cachedModel = localStorage.getItem('giftwise_cached_model');
-    if (cachedModel) {
-      return cachedModel;
-    }
-
+  async getPrioritizedVisionModels(apiKey) {
     try {
-      // 2. Ask Google what models are available (Only done once now)
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
       const data = await response.json();
 
-      if (!data.models) return 'gemini-1.5-flash';
+      if (!data.models) return ['gemini-1.5-flash', 'gemini-pro-vision'];
 
+      // Filter for valid vision models
       const visionModels = data.models.filter(m =>
         m.supportedGenerationMethods.includes('generateContent') &&
         (m.name.includes('vision') || m.name.includes('1.5') || m.name.includes('flash'))
       );
 
-      let bestModel = 'gemini-1.5-flash';
+      // Sort: Flash > 1.5 > Pro Vision
+      visionModels.sort((a, b) => {
+        const nameA = a.name.toLowerCase();
+        const nameB = b.name.toLowerCase();
 
-      if (visionModels.length > 0) {
-        visionModels.sort((a, b) => {
-          if (a.name.includes('flash')) return -1;
-          if (b.name.includes('flash')) return 1;
-          return 0;
-        });
+        // Flash is usually best for speed/quota
+        const isFlashA = nameA.includes('flash');
+        const isFlashB = nameB.includes('flash');
+        if (isFlashA && !isFlashB) return -1;
+        if (!isFlashA && isFlashB) return 1;
 
-        bestModel = visionModels[0].name.replace('models/', '');
-      }
+        return 0;
+      });
 
-      console.log('Caching detected model:', bestModel);
-      localStorage.setItem('giftwise_cached_model', bestModel);
-      return bestModel;
-
+      return visionModels.map(m => m.name.replace('models/', ''));
     } catch (e) {
-      console.warn('Failed to auto-detect models:', e);
-      return 'gemini-1.5-flash';
+      console.warn('Failed to fetch vision models, using defaults', e);
+      return ['gemini-1.5-flash', 'gemini-pro-vision'];
     }
   }
 
@@ -185,7 +179,6 @@ class OCRService {
       const reader = new FileReader();
       reader.onload = () => {
         const result = reader.result;
-        // Robust extraction of base64 data
         const base64 = result.includes(',') ? result.split(',')[1] : result;
         resolve(base64);
       };
@@ -193,76 +186,74 @@ class OCRService {
       reader.readAsDataURL(imageFile);
     });
 
-    // Default to jpeg if type is missing (common with some clipboard pastes)
     const mimeType = imageFile.type || 'image/jpeg';
 
-    // DYNAMIC MODEL SELECTION
-    const modelName = await this.getValidGeminiModel(apiKey);
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+    // Get list of available vision models
+    let models = await this.getPrioritizedVisionModels(apiKey);
+    console.log('Available vision models:', models);
 
+    let lastError = null;
 
-    // DEBUG: Alert start (removed)
-    // window.alert('Attempting to use Gemini...'); 
+    // Try each model until one works
+    for (const modelName of models) {
+      try {
+        console.log(`Attempting OCR with model: ${modelName}`);
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{
-          parts: [
-            { text: "Extract contact info from this business card. Return ONLY a JSON object with keys: name, title, company, email, phone, website, social (object with linkedin, etc). Do not verify, just transcribe." },
-            { inline_data: { mime_type: mimeType, data: base64Image } }
-          ]
-        }]
-      })
-    });
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                { text: "Extract contact info from this business card. Return ONLY a JSON object with keys: name, title, company, email, phone, website, social (object with linkedin, etc). Do not verify, just transcribe." },
+                { inline_data: { mime_type: mimeType, data: base64Image } }
+              ]
+            }]
+          })
+        });
 
-    if (!response.ok) {
-      // Handle Rate Limiting (429) by switching models
-      if (response.status === 429) {
-        console.warn('Rate limit hit. Clearing cache and retrying with backup model...');
-        localStorage.removeItem('giftwise_cached_model');
-
-        // If we were using flash, try pro (different quota bucket sometimes)
-        if (modelName.includes('flash') || modelName.includes('1.5')) {
-          // Return a recursive call forced to pro-vision if possible, or just fail gracefully 
-          // For now, let's just throw a specific error guiding the user
-          throw new Error('Quota Limit Reached. Please wait 1 minute before scanning again.');
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`API Request Failed (${modelName}): ${response.status} - ${errText}`);
         }
+
+        const data = await response.json();
+
+        if (data.promptFeedback && data.promptFeedback.blockReason) {
+          throw new Error(`Blocked by safety settings: ${data.promptFeedback.blockReason}`);
+        }
+
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+        if (!text) {
+          console.error('Empty Gemini Response:', data);
+          throw new Error('Gemini returned empty response');
+        }
+
+        // Parse success
+        const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const extracted = JSON.parse(cleanText);
+
+        return {
+          success: true,
+          rawText: JSON.stringify(extracted, null, 2),
+          extractedData: extracted,
+          confidence: 99,
+          source: `gemini-vision (${modelName})`,
+          processingTime: { total: 1.0 }
+        };
+
+      } catch (error) {
+        console.warn(`Vision model ${modelName} failed: ${error.message}`);
+        lastError = error;
+        // Continue to next model
+        continue;
       }
-
-      const errText = await response.text();
-      throw new Error(`API Request Failed (${modelName}): ${response.status} - ${errText}`);
     }
 
-    const data = await response.json();
-
-    // Check for API-level errors or blockages
-    if (data.promptFeedback && data.promptFeedback.blockReason) {
-      throw new Error(`Blocked by safety settings: ${data.promptFeedback.blockReason}`);
-    }
-
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (!text) {
-      // Log the full weird response to help debugging
-      console.error('Empty Gemini Response:', data);
-      const debugStr = JSON.stringify(data, null, 2);
-      throw new Error(`Gemini returned empty response. Full Data: ${debugStr}`);
-    }
-
-    // Parse JSON from text blocks
-    const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
-    const extracted = JSON.parse(cleanText);
-
-    return {
-      success: true,
-      rawText: JSON.stringify(extracted, null, 2),
-      extractedData: extracted,
-      confidence: 99,
-      source: `gemini-vision (${modelName})`,
-      processingTime: { total: 1.0 }
-    };
+    // All models failed
+    throw lastError || new Error('All vision models failed');
   }
 
   /**

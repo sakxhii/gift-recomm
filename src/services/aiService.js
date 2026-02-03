@@ -89,7 +89,7 @@ class AIService {
             console.error('Gemini API Error:', error);
             // Alert removed now that JSON parsing is fixed
 
-            console.warn('Falling back to mock data due to API error.');
+            console.warn(`Falling back to mock data due to API error: ${error.message}`);
             return this._getMockSuggestions(profile);
         }
     }
@@ -97,45 +97,80 @@ class AIService {
     /**
      * Internal method to call Google Gemini API
      */
-    async getValidGeminiModel(apiKey) {
+    async getPrioritizedModels(apiKey) {
         try {
             // Ask Google what models are available for this key
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
             const data = await response.json();
 
-            if (!data.models) return 'gemini-pro';
+            if (!data.models) return ['gemini-1.5-flash', 'gemini-1.0-pro'];
 
-            // Prefer 1.5-flash for speed/cost, then pro
-            const textModels = data.models.filter(m =>
+            // Filter for models that generate content
+            const usableModels = data.models.filter(m =>
                 m.supportedGenerationMethods.includes('generateContent') &&
-                !m.name.includes('vision') && // purely text models if possible, though vision models work too
-                (m.name.includes('1.5') || m.name.includes('flash') || m.name.includes('pro'))
+                !m.name.includes('vision') // Prefer standard multimodal/text versions
             );
 
-            if (textModels.length > 0) {
-                // Sort to prefer flash/1.5
-                textModels.sort((a, b) => {
-                    if (a.name.includes('flash')) return -1;
-                    if (b.name.includes('flash')) return 1;
-                    return 0;
-                });
-                return textModels[0].name.replace('models/', '');
-            }
+            // Sort preferences: Flash > 1.5 > Pro
+            usableModels.sort((a, b) => {
+                const nameA = a.name.toLowerCase();
+                const nameB = b.name.toLowerCase();
 
-            return 'gemini-pro';
+                // Prioritize 'flash' (usually fastest/cheapest/highest quota)
+                const isFlashA = nameA.includes('flash');
+                const isFlashB = nameB.includes('flash');
+                if (isFlashA && !isFlashB) return -1;
+                if (!isFlashA && isFlashB) return 1;
+
+                // Prioritize newer versions (1.5)
+                const is15A = nameA.includes('1.5');
+                const is15B = nameB.includes('1.5');
+                if (is15A && !is15B) return -1;
+                if (!is15A && is15B) return 1;
+
+                return 0;
+            });
+
+            return usableModels.map(m => m.name.replace('models/', ''));
         } catch (e) {
-            console.warn('Failed to auto-detect text models:', e);
-            return 'gemini-pro';
+            console.warn('Failed to fetch models list, using defaults:', e);
+            return ['gemini-1.5-flash', 'gemini-1.0-pro', 'gemini-pro'];
         }
     }
 
     async _callGeminiAPI(apiKey, profile, filters) {
         const prompt = this._constructPrompt(profile, filters);
 
-        // Auto-detect best model
-        const modelName = await this.getValidGeminiModel(apiKey);
-        console.log('AI Service using model:', modelName);
+        // Get list of all available models for this specific API key
+        // This avoids guessing models that don't exist (404s)
+        let models = await this.getPrioritizedModels(apiKey);
+        console.log('Available models for this key:', models);
 
+        if (models.length === 0) {
+            models = ['gemini-1.5-flash', 'gemini-1.0-pro'];
+        }
+
+        let lastError = null;
+
+        // Try each model until one works
+        for (const modelName of models) {
+            try {
+                console.log(`Attempting generation with model: ${modelName}`);
+                return await this._generateContent(apiKey, modelName, prompt);
+            } catch (error) {
+                console.warn(`Model ${modelName} failed: ${error.message}`);
+                lastError = error;
+                // Continue to next model in the list
+                continue;
+            }
+        }
+
+        // If we get here, all models failed
+        console.error('All available models failed.');
+        throw lastError || new Error('All valid models failed to generate content');
+    }
+
+    async _generateContent(apiKey, modelName, prompt) {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
         const response = await fetch(url, {
@@ -151,13 +186,14 @@ class AIService {
                     temperature: 0.7,
                     topK: 40,
                     topP: 0.95,
-                    maxOutputTokens: 1024,
+                    maxOutputTokens: 8192,
                 }
             })
         });
 
         if (!response.ok) {
             const errorText = await response.text();
+            // detailed error for debugging
             throw new Error(`Gemini API Error (${response.status}): ${errorText}`);
         }
 
@@ -213,7 +249,8 @@ class AIService {
                 ...gift,
                 id: gift.id || `ai_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
                 imageUrl: gift.imageUrl || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=500&q=80', // Default gift box image
-                matchScore: gift.matchScore || 85 // Default score
+                matchScore: gift.matchScore || 85, // Default score
+                purchaseUrl: `https://www.google.com/search?q=${encodeURIComponent(gift.name + ' gift')}&tbm=shop`
             }));
 
         } catch (error) {
@@ -226,31 +263,46 @@ class AIService {
      * Construct the prompt for the AI
      */
     _constructPrompt(profile, filters) {
+        const interests = (profile.interests && profile.interests.length > 0)
+            ? profile.interests.join(', ')
+            : 'General Business, Professional Networking, Office Productivity';
+
         return `
-      You are a gift API. Output ONLY a valid JSON array of 5 gift objects for:
+      You are a smart gift recommendation API. Output ONLY a valid JSON array of 5 gift objects.
       
-      PROFILE:
+      CONTEXT: The user is looking for gifts for a professional contact derived from a business card.
+      The recipient could be a specific individual OR a business entity.
+
+      PROFILE DATA:
       - Name: ${profile.name}
-      - Title: ${profile.title}
-      - Interests: ${profile.interests.join(', ')}
-      - Budget: ${filters.budget}
+      - Title: ${profile.title || 'N/A (Treat as Business Entity if Name is a Company)'}
+      - Company: ${profile.company || 'N/A'}
+      - Known Interests: ${interests}
+      - Budget Level: ${filters.budget || 'Moderate'}
+
+      INSTRUCTIONS:
+      1. Analyze the "Name" and "Title". 
+         - If it looks like a person (e.g., "John Doe", "Manager"), suggest professional gifts for an individual AND include 1-2 "Team/Office" gifts (e.g., coffee for the office, desk gadgets).
+         - If it looks like a Business/Company (e.g., "Acme Corp", "Tech Solutions") or Title is N/A, suggest B2B/Corporate gifts (e.g., breakroom supplies, software tools, branded swag, office decor).
+      2. Ensure a diverse mix of categories (e.g., Tech, Wellness, Office, Food/Drink).
+      3. Reasoning should explain WHY it fits the business context or the individual's role.
 
       REQUIRED JSON STRUCTURE:
       [
         {
           "id": "g1",
-          "name": "Gift Name",
+          "name": "Gift Name (Specific Product)",
           "price": 50,
           "currency": "USD",
           "category": "Category",
           "matchScore": 90,
-          "description": "Description",
-          "reasoning": "Reason",
-          "tags": ["tag1", "tag2"]
+          "description": "Brief description of the item.",
+          "reasoning": "Explain why this fits the person's role or the business needs.",
+          "tags": ["Professional", "Tech", "Office"]
         }
       ]
 
-      IMPORTANT: Do not write "Here is the JSON" or use markdown blocks. Just the raw JSON array.
+      IMPORTANT: Do not use markdown formatting (no \`\`\`json). Just return the raw JSON array.
     `;
     }
 

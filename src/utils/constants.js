@@ -10,6 +10,7 @@ export const STORAGE_KEYS = {
 
 export const APP_VERSION = '1.0.0';
 export const MAX_LOCAL_STORAGE = 10 * 1024 * 1024; // 10MB
+export const DEFAULT_API_KEY = ""; // Replace with your actual key if you want to hardcode it
 
 export const OCCASIONS = [
   { id: 'birthday', label: 'Birthday' },

@@ -8,11 +8,14 @@ import Card, { CardHeader, CardTitle, CardDescription, CardContent, CardFooter, 
 import StorageStatus from '../Common/StorageStatus';
 import { useAppStats, useProfiles } from '../../hooks/useLocalStorage';
 
+import storage from '../../utils/storage';
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const { stats, refreshStats, isLoading } = useAppStats();
   const { profiles } = useProfiles();
   const [recentActivity, setRecentActivity] = useState([]);
+  const [isBackingUp, setIsBackingUp] = useState(false);
 
   // Format date for display
   const formatDate = (dateString) => {
@@ -26,6 +29,29 @@ const Dashboard = () => {
     if (diffDays < 7) return `${diffDays} days ago`;
 
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
+  const handleBackup = () => {
+    setIsBackingUp(true);
+    try {
+      const result = storage.exportAllData();
+
+      if (result.success && result.url) {
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", result.url);
+        downloadAnchorNode.setAttribute("download", result.fileName);
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+      } else {
+        alert('Export failed: ' + (result.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Failed to export data');
+    } finally {
+      setIsBackingUp(false);
+    }
   };
 
   // Get initials for avatar
@@ -314,7 +340,7 @@ const Dashboard = () => {
           description="View birthdays, anniversaries, and other important dates"
           icon={<Calendar size={24} />}
           actionText="View Calendar"
-          onClick={() => navigate('/history')}
+          onClick={() => navigate('/profiles')}
           variant="primary"
         />
 
@@ -322,8 +348,8 @@ const Dashboard = () => {
           title="Backup Your Data"
           description="Export your data to prevent loss. Recommended weekly."
           icon={<Download size={24} />}
-          actionText="Backup Now"
-          onClick={() => navigate('/settings')}
+          actionText={isBackingUp ? "Backing up..." : "Backup Now"}
+          onClick={handleBackup}
           variant="warning"
         />
       </div>

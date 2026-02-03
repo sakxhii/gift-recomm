@@ -5,7 +5,7 @@ import {
   ExternalLink, CheckCircle, ShoppingBag, Loader2
 } from 'lucide-react';
 import Card, { CardHeader, CardTitle, CardContent } from '../Common/Card';
-import { useProfiles } from '../../hooks/useLocalStorage';
+import { useProfiles, useGiftHistory } from '../../hooks/useLocalStorage';
 import aiService from '../../services/aiService';
 import { useAlert } from '../Common/Alert';
 
@@ -13,6 +13,7 @@ const GiftSuggestions = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { getProfile, updateProfile } = useProfiles();
+  const { addGift } = useGiftHistory();
   const { showAlert } = useAlert();
 
   const [profile, setProfile] = useState(null);
@@ -20,60 +21,59 @@ const GiftSuggestions = () => {
   const [suggestions, setSuggestions] = useState([]);
   const [activeFilter, setActiveFilter] = useState('All');
   const [shortlist, setShortlist] = useState([]);
+  const [givenGifts, setGivenGifts] = useState([]);
 
-  // DEBUG: Direct API Test
   useEffect(() => {
-    const testAPI = async () => {
-      const settings = localStorage.getItem('giftwise_settings');
-      if (!settings) {
-        alert('No settings found');
+    const init = async () => {
+      // Get profile from navigation state
+      const profileId = location.state?.profileId;
+
+      if (!profileId) {
+        // Fallback to most recent profile if available, or redirect
+        const recentProfiles = JSON.parse(localStorage.getItem('giftwise_profiles') || '[]');
+        if (recentProfiles.length > 0) {
+          // Use the most recent one if we lost state (e.g. reload)
+          const latest = recentProfiles[recentProfiles.length - 1];
+          setProfile(latest);
+          await generateIdeas(latest);
+        } else {
+          navigate('/');
+        }
         return;
       }
 
-      const parsed = JSON.parse(decodeURIComponent(atob(settings)));
-      const apiKey = parsed.geminiApiKey;
-
-      try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: "Suggest 3 gifts for a Software Engineer. Return valid JSON." }] }]
-          })
-        });
-
-        const text = await response.text();
-        console.log('DIRECT API RESULT:', text);
-
-        if (!response.ok) {
-          alert(`DIRECT API FAILURE: ${response.status}\n${text}`);
-        } else {
-          const data = JSON.parse(text);
-          const aiText = data.candidates[0].content.parts[0].text;
-          alert(`SUCCESS! API WORKED!\nResponse: ${aiText.substring(0, 100)}...`);
-
-          // If this worked, the issue is in my Service Class logic, not the API/Key.
-          // Reloading normal flow...
-          setLoading(true);
-          const result = await aiService.generateSuggestions(profile); // Try normal again
-        }
-      } catch (e) {
-        alert(`NETWORK ERROR: ${e.message}`);
+      const foundProfile = getProfile(profileId);
+      if (foundProfile) {
+        setProfile(foundProfile);
+        await generateIdeas(foundProfile);
+      } else {
+        showAlert('error', 'Profile not found');
+        navigate('/');
       }
     };
 
-    if (profile) testAPI();
-  }, [profile]);
+    init();
+  }, [location.state]);
 
-  /*
-      // ORIGINAL LOGIC COMMENTED OUT FOR DEBUGGING
-      useEffect(() => {
-      const init = async () => {
-        // ... logic ...
-      };
-      init();
-      }, ...);
-  */
+  const generateIdeas = async (currentProfile) => {
+    try {
+      setLoading(true);
+      const response = await aiService.generateSuggestions(currentProfile);
+
+      if (response && response.suggestions && Array.isArray(response.suggestions)) {
+        setSuggestions(response.suggestions);
+      } else {
+        console.warn('AI Service returned unexpected format:', response);
+        setSuggestions([]);
+        showAlert('warning', 'Received invalid data format from AI service.');
+      }
+    } catch (error) {
+      console.error('Error generating suggestions:', error);
+      showAlert('error', 'Failed to generate suggestions. Using offline mode.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleShortlistToggle = (giftId) => {
     setShortlist(prev => {
@@ -88,19 +88,21 @@ const GiftSuggestions = () => {
   const handleMarkAsGiven = (gift) => {
     if (!profile) return;
 
-    // Add to profile's gift history
-    const givenGift = {
+    // Add to global gift history (which also updates profile gift count)
+    const result = addGift({
       ...gift,
-      givenDate: new Date().toISOString(),
-      status: 'given'
-    };
+      profileId: profile.id,
+      giftName: gift.name, // ensure compatibility with both naming conventions
+      occasion: 'General', // Default occasion
+      price: gift.price || 0
+    });
 
-    const updatedHistory = [...(profile.giftHistory || []), givenGift];
-    updateProfile(profile.id, { giftHistory: updatedHistory });
-
-    showAlert('success', `Marked "${gift.name}" as given!`);
-
-    // Ideally navigate to history or show confirmation
+    if (result) {
+      setGivenGifts(prev => [...prev, gift.id]);
+      showAlert('success', `Marked "${gift.name}" as given!`);
+    } else {
+      showAlert('error', 'Failed to save gift history');
+    }
   };
 
   if (loading) {
@@ -215,10 +217,13 @@ const GiftSuggestions = () => {
               <div className="flex gap-2">
                 <button
                   onClick={() => handleMarkAsGiven(gift)}
-                  className="flex-1 btn btn-outline py-2 text-sm"
+                  disabled={givenGifts.includes(gift.id)}
+                  className={`flex-1 btn py-2 text-sm ${givenGifts.includes(gift.id)
+                    ? 'bg-green-50 text-green-700 border-green-200'
+                    : 'btn-outline'}`}
                 >
                   <CheckCircle size={16} className="mr-2" />
-                  Mark Given
+                  {givenGifts.includes(gift.id) ? 'Given' : 'Mark Given'}
                 </button>
                 <button
                   onClick={() => handleShortlistToggle(gift.id)}
@@ -230,10 +235,15 @@ const GiftSuggestions = () => {
                   <Heart size={20} fill={shortlist.includes(gift.id) ? "currentColor" : "none"} />
                 </button>
               </div>
-              <button className="w-full btn btn-primary py-2.5 flex items-center justify-center group">
+              <a
+                href={gift.purchaseUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full btn btn-primary py-2.5 flex items-center justify-center group text-white hover:text-white"
+              >
                 Purchase Online
                 <ExternalLink size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
-              </button>
+              </a>
             </div>
           </Card>
         ))}
