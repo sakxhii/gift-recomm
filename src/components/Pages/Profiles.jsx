@@ -4,12 +4,14 @@ import { Users, Search, Filter, UserPlus, Mail, Phone, Building, ExternalLink, G
 import Card, { CardHeader, CardContent, CardFooter } from '../Common/Card';
 import { useProfiles } from '../../hooks/useLocalStorage';
 import { useAlert } from '../Common/Alert';
+import ConfirmationModal from '../Common/ConfirmationModal';
 
 const Profiles = () => {
   const navigate = useNavigate();
   const { profiles, deleteProfile } = useProfiles();
   const { showAlert } = useAlert();
   const [searchTerm, setSearchTerm] = useState('');
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, profileId: null });
 
   const filteredProfiles = profiles.filter(profile => {
     const searchLower = searchTerm.toLowerCase();
@@ -20,11 +22,16 @@ const Profiles = () => {
     );
   });
 
-  const handleDelete = (e, id) => {
+  const handleDeleteClick = (e, id) => {
     e.stopPropagation();
-    if (window.confirm('Are you sure you want to delete this profile?')) {
-      deleteProfile(id);
+    setDeleteModal({ isOpen: true, profileId: id });
+  };
+
+  const confirmDelete = () => {
+    if (deleteModal.profileId) {
+      deleteProfile(deleteModal.profileId);
       showAlert('success', 'Profile deleted successfully');
+      setDeleteModal({ isOpen: false, profileId: null });
     }
   };
 
@@ -101,7 +108,7 @@ const Profiles = () => {
                       <p className="text-sm text-gray-500 truncate">{profile.company}</p>
                     </div>
                     <button
-                      onClick={(e) => handleDelete(e, profile.id)}
+                      onClick={(e) => handleDeleteClick(e, profile.id)}
                       className="text-gray-400 hover:text-red-500 p-1"
                     >
                       <Trash2 size={16} />
@@ -162,6 +169,16 @@ const Profiles = () => {
           )}
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
+        onConfirm={confirmDelete}
+        title="Delete Profile"
+        message="Are you sure you want to delete this profile? This action cannot be undone."
+        confirmText="Delete Profile"
+        isDanger={true}
+      />
     </div>
   );
 };

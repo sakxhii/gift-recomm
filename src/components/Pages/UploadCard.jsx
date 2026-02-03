@@ -11,6 +11,7 @@ import { useProfiles } from '../../hooks/useLocalStorage';
 import HelpModal from '../Common/HelpModal';
 import { useAlert } from '../Common/Alert';
 import storage from '../../utils/storage';
+import CameraCapture from '../Common/CameraCapture';
 
 const UploadCard = () => {
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ const UploadCard = () => {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [autoEnhance, setAutoEnhance] = useState(true);
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
 
   // Initialize OCR service on mount
   const [ocrStatus, setOcrStatus] = useState(ocrService.isInitialized ? 'ready' : 'initializing');
@@ -151,9 +153,7 @@ const UploadCard = () => {
   };
 
   const handleCameraCapture = () => {
-    if (cameraInputRef.current) {
-      cameraInputRef.current.click();
-    }
+    setShowCamera(true);
   };
 
   const { showAlert } = useAlert();
@@ -791,6 +791,16 @@ const UploadCard = () => {
               Clear
             </button>
           </div>
+        )}
+        {/* Camera Capture Modal */}
+        {showCamera && (
+          <CameraCapture
+            onCapture={(file) => {
+              handleFileSelect(file);
+              setShowCamera(false);
+            }}
+            onClose={() => setShowCamera(false)}
+          />
         )}
       </div>
     </div>
