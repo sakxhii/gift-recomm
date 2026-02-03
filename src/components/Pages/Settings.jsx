@@ -1,15 +1,14 @@
 import React from 'react';
-import { Settings as SettingsIcon, Download, Upload, Trash2, Database, Shield, Bell, Palette, CheckCircle, Edit2, Key } from 'lucide-react';
+import { Settings as SettingsIcon, Download, Upload, Trash2, Database, Shield, Bell, CheckCircle, Edit2, Key } from 'lucide-react';
 import Card, { CardHeader, CardTitle, CardContent } from '../Common/Card';
 import storage from '../../utils/storage';
 import { useAlert } from '../Common/Alert';
 import ConfirmationModal from '../Common/ConfirmationModal';
-import { useTheme } from '../../context/ThemeContext';
 import StorageStatus from '../Common/StorageStatus';
 
 const Settings = () => {
   const { showAlert } = useAlert();
-  const { theme, changeTheme } = useTheme();
+  // Theme settings removed
   const [apiKey, setApiKey] = React.useState('');
   const [showKey, setShowKey] = React.useState(false);
   const [resetModal, setResetModal] = React.useState(false);
@@ -136,16 +135,6 @@ const Settings = () => {
                 >
                   <Bell size={18} className="mr-3" />
                   Notifications
-                </button>
-                <button
-                  onClick={() => setActiveSection('appearance')}
-                  className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-lg transition-colors ${activeSection === 'appearance'
-                    ? 'bg-primary-50 text-primary-700'
-                    : 'text-gray-700 hover:bg-gray-50'
-                    }`}
-                >
-                  <Palette size={18} className="mr-3" />
-                  Appearance
                 </button>
               </nav>
             </CardContent>
@@ -376,55 +365,6 @@ const Settings = () => {
                   <p className="text-gray-600 max-w-sm mx-auto">
                     We're working on adding smart reminders for birthdays, anniversaries, and gift suggestions. Stay tuned!
                   </p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {activeSection === 'appearance' && (
-            <Card>
-              <CardHeader border>
-                <div className="flex items-center">
-                  <Palette size={20} className="text-primary-600 mr-3" />
-                  <CardTitle>Appearance</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-700 mb-4">Theme Preference</h3>
-                    <div className="grid grid-cols-3 gap-4">
-                      <button
-                        onClick={() => changeTheme('light')}
-                        className={`p-4 border-2 rounded-xl text-center shadow-sm transition-all ${theme === 'light' ? 'border-primary-500 bg-primary-50' : 'border-gray-200 bg-white hover:bg-gray-50'}`}
-                      >
-                        <div className="w-8 h-8 rounded-full bg-gray-100 mx-auto mb-2 border border-gray-200 flex items-center justify-center">
-                          ☀️
-                        </div>
-                        <span className={`font-medium block ${theme === 'light' ? 'text-primary-700' : 'text-gray-900'}`}>Light</span>
-                      </button>
-
-                      <button
-                        onClick={() => changeTheme('dark')}
-                        className={`p-4 border-2 rounded-xl text-center shadow-sm transition-all ${theme === 'dark' ? 'border-primary-500 bg-gray-800' : 'border-gray-200 bg-gray-900 opacity-90 hover:opacity-100'}`}
-                      >
-                        <div className="w-8 h-8 rounded-full bg-gray-800 mx-auto mb-2 border border-gray-700 flex items-center justify-center">
-                          🌙
-                        </div>
-                        <span className="font-medium text-white block">Dark</span>
-                      </button>
-
-                      <button
-                        onClick={() => changeTheme('system')}
-                        className={`p-4 border-2 rounded-xl text-center shadow-sm transition-all ${theme === 'system' ? 'border-primary-500 bg-gray-100' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}`}
-                      >
-                        <div className="w-8 h-8 rounded-full bg-white mx-auto mb-2 border border-gray-300 flex items-center justify-center">
-                          🖥️
-                        </div>
-                        <span className={`font-medium block ${theme === 'system' ? 'text-primary-700' : 'text-gray-900'}`}>System</span>
-                      </button>
-                    </div>
-                  </div>
                 </div>
               </CardContent>
             </Card>

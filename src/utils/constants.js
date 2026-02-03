@@ -37,10 +37,10 @@ export const RELATIONSHIPS = [
 ];
 
 export const BUDGET_RANGES = [
-  { id: 'low', label: '$25 - $50', min: 25, max: 50 },
-  { id: 'medium', label: '$50 - $150', min: 50, max: 150 },
-  { id: 'high', label: '$150 - $500', min: 150, max: 500 },
-  { id: 'premium', label: '$500+', min: 500, max: 10000 }
+  { id: 'low', label: '₹500 - ₹2,000', min: 500, max: 2000 },
+  { id: 'medium', label: '₹2,000 - ₹10,000', min: 2000, max: 10000 },
+  { id: 'high', label: '₹10,000 - ₹50,000', min: 10000, max: 50000 },
+  { id: 'premium', label: '₹50,000+', min: 50000, max: 1000000 }
 ];
 
 export const INDUSTRIES = [

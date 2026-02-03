@@ -51,9 +51,9 @@ const Profiles = () => {
           </div>
           <button
             onClick={() => navigate('/upload')}
-            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white text-sm font-semibold rounded-lg hover:from-primary-600 hover:to-primary-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+            className="btn btn-primary"
           >
-            <UserPlus size={18} />
+            <UserPlus size={18} className="mr-2" />
             <span>Add New Profile</span>
           </button>
         </div>
@@ -161,9 +161,9 @@ const Profiles = () => {
           {!searchTerm && (
             <button
               onClick={() => navigate('/upload')}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-semibold rounded-lg hover:from-primary-600 hover:to-primary-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+              className="btn btn-primary btn-lg"
             >
-              <UserPlus size={20} />
+              <UserPlus size={20} className="mr-2" />
               <span>Add Your First Profile</span>
             </button>
           )}

@@ -9,8 +9,8 @@ const MOCK_GIFTS = [
     {
         id: 'g1',
         name: 'Premium Noise-Canceling Headphones',
-        price: 249,
-        currency: 'USD',
+        price: 24999,
+        currency: 'INR',
         category: 'Tech',
         matchScore: 94,
         description: 'Perfect for focused work sessions and travel. Matches tech profile.',
@@ -22,8 +22,8 @@ const MOCK_GIFTS = [
     {
         id: 'g2',
         name: 'Custom Data Visualization Course',
-        price: 149,
-        currency: 'USD',
+        price: 12999,
+        currency: 'INR',
         category: 'Education',
         matchScore: 88,
         description: 'Enhances data science skills. Shows investment in their career growth.',
@@ -35,8 +35,8 @@ const MOCK_GIFTS = [
     {
         id: 'g3',
         name: 'Artisanal Coffee Subscription',
-        price: 120,
-        currency: 'USD',
+        price: 9999,
+        currency: 'INR',
         category: 'Food & Drink',
         matchScore: 85,
         description: 'Monthly delivery of single-origin beans. Provides ongoing enjoyment.',
@@ -272,6 +272,8 @@ class AIService {
       
       CONTEXT: The user is looking for gifts for a professional contact derived from a business card.
       The recipient could be a specific individual OR a business entity.
+      
+      CURRENCY: All prices must be in Indian Rupees (INR).
 
       PROFILE DATA:
       - Name: ${profile.name}
@@ -286,14 +288,15 @@ class AIService {
          - If it looks like a Business/Company (e.g., "Acme Corp", "Tech Solutions") or Title is N/A, suggest B2B/Corporate gifts (e.g., breakroom supplies, software tools, branded swag, office decor).
       2. Ensure a diverse mix of categories (e.g., Tech, Wellness, Office, Food/Drink).
       3. Reasoning should explain WHY it fits the business context or the individual's role.
+      4. Prices should be realistic for the Indian market in INR.
 
       REQUIRED JSON STRUCTURE:
       [
         {
           "id": "g1",
           "name": "Gift Name (Specific Product)",
-          "price": 50,
-          "currency": "USD",
+          "price": 3500,
+          "currency": "INR",
           "category": "Category",
           "matchScore": 90,
           "description": "Brief description of the item.",

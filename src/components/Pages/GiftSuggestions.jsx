@@ -25,7 +25,7 @@ const GiftSuggestions = () => {
   // Filter State
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
-    maxPrice: 1000,
+    maxPrice: 50000,
     minMatch: 70,
     categories: []
   });
@@ -225,7 +225,7 @@ const GiftSuggestions = () => {
             <h3 className="font-semibold text-gray-900">Filter Recommendations</h3>
             <div className="flex gap-2">
               <button
-                onClick={() => setFilters({ maxPrice: 1000, minMatch: 70, categories: [] })}
+                onClick={() => setFilters({ maxPrice: 50000, minMatch: 70, categories: [] })}
                 className="text-sm text-primary-600 hover:text-primary-800"
               >
                 Reset All
@@ -242,20 +242,20 @@ const GiftSuggestions = () => {
               <div>
                 <div className="flex justify-between text-sm mb-2">
                   <span className="text-gray-600">Max Price</span>
-                  <span className="font-medium text-gray-900">${filters.maxPrice}</span>
+                  <span className="font-medium text-gray-900">₹{filters.maxPrice.toLocaleString()}</span>
                 </div>
                 <input
                   type="range"
-                  min="0"
-                  max="500"
-                  step="10"
+                  min="500"
+                  max="50000"
+                  step="500"
                   value={filters.maxPrice}
                   onChange={(e) => setFilters(prev => ({ ...prev, maxPrice: parseInt(e.target.value) }))}
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
                 />
                 <div className="flex justify-between text-xs text-gray-400 mt-1">
-                  <span>$0</span>
-                  <span>$500+</span>
+                  <span>₹500</span>
+                  <span>₹50,000+</span>
                 </div>
               </div>
 
@@ -314,7 +314,7 @@ const GiftSuggestions = () => {
                 />
                 <div className="absolute top-3 right-3">
                   <div className="bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-sm font-semibold text-gray-900 shadow-sm">
-                    ${gift.price}
+                    ₹{gift.price.toLocaleString()}
                   </div>
                 </div>
                 <div className="absolute top-3 left-3">
@@ -393,7 +393,7 @@ const GiftSuggestions = () => {
           <h3 className="text-lg font-medium text-gray-900">No matching gifts</h3>
           <p className="text-gray-500 mb-4">Try adjusting your filters to see more recommendations</p>
           <button
-            onClick={() => setFilters({ maxPrice: 1000, minMatch: 70, categories: [] })}
+            onClick={() => setFilters({ maxPrice: 50000, minMatch: 70, categories: [] })}
             className="btn btn-secondary"
           >
             Reset Filters
