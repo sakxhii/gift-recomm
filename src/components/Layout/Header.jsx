@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Home, Upload, Users, Gift, Settings, Download, Menu, X, Bell, HelpCircle } from 'lucide-react';
 import { useAppStats } from '../../hooks/useLocalStorage';
 import { useAlert } from '../Common/Alert';
-import logo from '../../assets/logo.png';
+import logo from '../../assets/logo.svg';
 
 import storage from '../../utils/storage';
 import HelpModal from '../Common/HelpModal';

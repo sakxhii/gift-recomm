@@ -1,6 +1,6 @@
 import React from 'react';
 import { Github, Heart, Shield, Zap } from 'lucide-react';
-import logo from '../../assets/logo.png';
+import logo from '../../assets/logo.svg';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
