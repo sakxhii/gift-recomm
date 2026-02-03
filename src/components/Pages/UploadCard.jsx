@@ -195,7 +195,12 @@ const UploadCard = () => {
 
       if (result.success) {
         setOcrResult(result);
-        showAlert('success', `OCR completed with ${result.confidence.toFixed(1)}% confidence`, 5000);
+
+        if (result.source === 'mock-data') {
+          showAlert('warning', 'OCR connection failed or no API key. Using mock data.', 5000);
+        } else {
+          showAlert('success', `OCR completed with ${result.confidence.toFixed(1)}% confidence`, 5000);
+        }
       } else {
         throw new Error(result.error || 'OCR processing failed');
       }

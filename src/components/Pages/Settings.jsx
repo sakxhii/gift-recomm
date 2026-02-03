@@ -59,14 +59,18 @@ const Settings = () => {
 
   const handleExport = () => {
     try {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(storage.getAll()));
-      const downloadAnchorNode = document.createElement('a');
-      downloadAnchorNode.setAttribute("href", dataStr);
-      downloadAnchorNode.setAttribute("download", "giftwise_backup_" + new Date().toISOString().split('T')[0] + ".json");
-      document.body.appendChild(downloadAnchorNode); // required for firefox
-      downloadAnchorNode.click();
-      downloadAnchorNode.remove();
-      showAlert('success', 'Data export started');
+      const result = storage.exportAllData();
+      if (result.success && result.url) {
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", result.url);
+        downloadAnchorNode.setAttribute("download", result.fileName);
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+        showAlert('success', 'Data export started');
+      } else {
+        showAlert('error', 'Export failed: ' + (result.error || 'Unknown error'));
+      }
     } catch (error) {
       console.error('Export failed:', error);
       showAlert('error', 'Failed to export data');
@@ -78,7 +82,7 @@ const Settings = () => {
   };
 
   const confirmReset = () => {
-    storage.clear();
+    storage.clearAllData();
     setResetModal(false);
     window.location.reload();
   };

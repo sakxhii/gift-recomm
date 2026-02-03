@@ -68,97 +68,39 @@
 
   /* Button variants */
   .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    border-radius: 0.75rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
-    outline: none;
-    border: none;
-    cursor: pointer;
-  }
-
-  .btn:disabled {
-    opacity: 0.5;
-    pointer-events: none;
-  }
-
-  .btn:focus {
-    outline: 2px solid transparent;
-    outline-offset: 2px;
-    ring-width: 2px;
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium transition-all duration-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-sm {
-    padding: 0.375rem 0.75rem;
-    font-size: 0.875rem;
+    @apply px-3 py-1.5 text-xs;
   }
 
   .btn-md {
-    padding: 0.625rem 1rem;
-    font-size: 0.875rem;
+    @apply px-4 py-2 text-sm;
   }
 
   .btn-lg {
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
+    @apply px-6 py-3 text-base;
   }
 
   .btn-primary {
-    background-color: theme('colors.primary.600');
-    color: white;
-    box-shadow: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
-  }
-
-  .btn-primary:hover {
-    background-color: theme('colors.primary.700');
-  }
-
-  .btn-primary:active {
-    background-color: theme('colors.primary.800');
-  }
-
-  .btn-primary:focus {
-    box-shadow: 0 0 0 2px theme('colors.primary.500');
+    @apply text-white bg-primary-600 border border-transparent shadow-sm hover:bg-primary-700 focus:ring-primary-500;
   }
 
   .btn-secondary {
-    background-color: white;
-    color: theme('colors.gray.700');
-    border: 1px solid theme('colors.gray.300');
-    box-shadow: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
+    @apply text-gray-700 bg-white border border-gray-300 shadow-sm hover:bg-gray-50 focus:ring-gray-500 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700;
   }
 
-  .btn-secondary:hover {
-    background-color: theme('colors.gray.50');
-    border-color: theme('colors.gray.400');
-  }
-
-  .btn-secondary:active {
-    background-color: theme('colors.gray.100');
-  }
-
-  .btn-secondary:focus {
-    box-shadow: 0 0 0 2px theme('colors.gray.500');
+  .btn-outline {
+    @apply text-primary-700 bg-transparent border border-primary-200 hover:bg-primary-50 focus:ring-primary-500 dark:text-primary-400 dark:border-primary-700 dark:hover:bg-primary-900/20;
   }
 
   .btn-ghost {
-    background-color: transparent;
-    color: theme('colors.gray.600');
+    @apply text-gray-600 bg-transparent hover:bg-gray-100 focus:ring-gray-500 dark:text-gray-400 dark:hover:bg-gray-800;
   }
 
-  .btn-ghost:hover {
-    background-color: theme('colors.gray.100');
-  }
-
-  .btn-ghost:active {
-    background-color: theme('colors.gray.200');
-  }
-
-  .btn-ghost:focus {
-    box-shadow: 0 0 0 2px theme('colors.gray.500');
+  .btn-danger {
+    @apply text-white bg-red-600 border border-transparent hover:bg-red-700 focus:ring-red-500;
   }
 
   /* Input styles */
