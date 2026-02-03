@@ -85,6 +85,16 @@ export const AlertProvider = ({ children }) => {
     setAlerts(prev => prev.filter(alert => alert.id !== id));
   };
 
+  useEffect(() => {
+    const handleShowAlert = (event) => {
+      const { type, message, autoClose } = event.detail;
+      showAlert(type, message, autoClose);
+    };
+
+    window.addEventListener('show-alert', handleShowAlert);
+    return () => window.removeEventListener('show-alert', handleShowAlert);
+  }, []);
+
   return (
     <>
       {children}

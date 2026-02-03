@@ -4,9 +4,12 @@ import Card, { CardHeader, CardTitle, CardContent } from '../Common/Card';
 import storage from '../../utils/storage';
 import { useAlert } from '../Common/Alert';
 import ConfirmationModal from '../Common/ConfirmationModal';
+import { useTheme } from '../../context/ThemeContext';
+import StorageStatus from '../Common/StorageStatus';
 
 const Settings = () => {
   const { showAlert } = useAlert();
+  const { theme, changeTheme } = useTheme();
   const [apiKey, setApiKey] = React.useState('');
   const [showKey, setShowKey] = React.useState(false);
   const [resetModal, setResetModal] = React.useState(false);
@@ -88,8 +91,8 @@ const Settings = () => {
   return (
     <div className="max-w-4xl mx-auto animate-fade-in">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Settings</h1>
-        <p className="text-gray-600">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Settings</h1>
+        <p className="text-gray-600 dark:text-gray-400">
           Manage your app preferences and data
         </p>
       </div>
@@ -302,40 +305,8 @@ const Settings = () => {
                 </CardContent>
               </Card>
 
-              {/* App Information Card */}
-              <Card>
-                <CardHeader border>
-                  <CardTitle>App Information</CardTitle>
-                </CardHeader>
-
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">App Version</span>
-                      <span className="text-sm font-medium text-gray-900">1.0.0</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">Storage Mode</span>
-                      <span className="text-sm font-medium text-green-700">Local Only</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">Data Location</span>
-                      <span className="text-sm font-medium text-gray-900">Browser Storage</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-sm text-gray-600">Last Backup</span>
-                      <span className="text-sm font-medium text-gray-900">Never</span>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                    <p className="text-sm text-blue-700">
-                      💡 Remember: This app stores all data locally in your browser.
-                      Export regularly to prevent data loss.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+              {/* Storage Status */}
+              <StorageStatus showManageButton={false} />
             </>
           )}
 
@@ -419,20 +390,34 @@ const Settings = () => {
                   <div>
                     <h3 className="text-sm font-medium text-gray-700 mb-4">Theme Preference</h3>
                     <div className="grid grid-cols-3 gap-4">
-                      <button className="p-4 border-2 border-primary-500 bg-white rounded-xl text-center shadow-sm">
-                        <div className="w-8 h-8 rounded-full bg-gray-100 mx-auto mb-2 border border-gray-200"></div>
-                        <span className="font-medium text-primary-700 block">Light</span>
-                        <span className="text-2xl mt-2 block">☀️</span>
+                      <button
+                        onClick={() => changeTheme('light')}
+                        className={`p-4 border-2 rounded-xl text-center shadow-sm transition-all ${theme === 'light' ? 'border-primary-500 bg-primary-50' : 'border-gray-200 bg-white hover:bg-gray-50'}`}
+                      >
+                        <div className="w-8 h-8 rounded-full bg-gray-100 mx-auto mb-2 border border-gray-200 flex items-center justify-center">
+                          ☀️
+                        </div>
+                        <span className={`font-medium block ${theme === 'light' ? 'text-primary-700' : 'text-gray-900'}`}>Light</span>
                       </button>
-                      <button className="p-4 border border-gray-200 bg-gray-900 rounded-xl text-center opacity-70">
-                        <div className="w-8 h-8 rounded-full bg-gray-800 mx-auto mb-2 border border-gray-700"></div>
+
+                      <button
+                        onClick={() => changeTheme('dark')}
+                        className={`p-4 border-2 rounded-xl text-center shadow-sm transition-all ${theme === 'dark' ? 'border-primary-500 bg-gray-800' : 'border-gray-200 bg-gray-900 opacity-90 hover:opacity-100'}`}
+                      >
+                        <div className="w-8 h-8 rounded-full bg-gray-800 mx-auto mb-2 border border-gray-700 flex items-center justify-center">
+                          🌙
+                        </div>
                         <span className="font-medium text-white block">Dark</span>
-                        <span className="text-2xl mt-2 block">🌙</span>
                       </button>
-                      <button className="p-4 border border-gray-200 bg-gray-50 rounded-xl text-center opacity-70">
-                        <div className="w-8 h-8 rounded-full bg-white mx-auto mb-2 border border-gray-300"></div>
-                        <span className="font-medium text-gray-900 block">System</span>
-                        <span className="text-2xl mt-2 block">🖥️</span>
+
+                      <button
+                        onClick={() => changeTheme('system')}
+                        className={`p-4 border-2 rounded-xl text-center shadow-sm transition-all ${theme === 'system' ? 'border-primary-500 bg-gray-100' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}`}
+                      >
+                        <div className="w-8 h-8 rounded-full bg-white mx-auto mb-2 border border-gray-300 flex items-center justify-center">
+                          🖥️
+                        </div>
+                        <span className={`font-medium block ${theme === 'system' ? 'text-primary-700' : 'text-gray-900'}`}>System</span>
                       </button>
                     </div>
                   </div>

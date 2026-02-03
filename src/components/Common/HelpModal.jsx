@@ -84,11 +84,11 @@ const HelpModal = ({ isOpen, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
         onClick={onClose}
       />
-      
+
       {/* Modal */}
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         <div className="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
@@ -112,7 +112,7 @@ const HelpModal = ({ isOpen, onClose }) => {
               </button>
             </div>
           </div>
-          
+
           {/* Tabs */}
           <div className="border-b border-gray-200">
             <nav className="flex -mb-px">
@@ -122,11 +122,10 @@ const HelpModal = ({ isOpen, onClose }) => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex-1 py-4 px-1 text-center border-b-2 font-medium text-sm ${
-                      activeTab === tab.id
+                    className={`flex-1 py-4 px-1 text-center border-b-2 font-medium text-sm ${activeTab === tab.id
                         ? 'border-primary-500 text-primary-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
+                      }`}
                   >
                     <div className="flex flex-col items-center">
                       <Icon size={20} className="mb-1" />
@@ -137,7 +136,7 @@ const HelpModal = ({ isOpen, onClose }) => {
               })}
             </nav>
           </div>
-          
+
           {/* Content */}
           <div className="px-6 py-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -157,7 +156,7 @@ const HelpModal = ({ isOpen, onClose }) => {
                 </div>
               ))}
             </div>
-            
+
             {/* Status Info */}
             <div className="mt-8 p-4 bg-primary-50 rounded-xl border border-primary-200">
               <h4 className="font-medium text-primary-900 mb-2">Current OCR Status</h4>
@@ -176,12 +175,12 @@ const HelpModal = ({ isOpen, onClose }) => {
                 </div>
               </div>
             </div>
-            
+
             {/* Quick Actions */}
             <div className="mt-6 flex flex-col sm:flex-row gap-3">
               <button
                 onClick={() => window.location.reload()}
-                className="flex-1 btn btn-primary"
+                className="flex-1 px-5 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-semibold rounded-lg hover:from-primary-600 hover:to-primary-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
               >
                 Refresh Page
               </button>
@@ -190,17 +189,17 @@ const HelpModal = ({ isOpen, onClose }) => {
                   localStorage.removeItem('tesseract.js-cache');
                   window.location.reload();
                 }}
-                className="flex-1 btn btn-secondary"
+                className="flex-1 px-5 py-2.5 bg-white border border-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 hover:text-primary-600 transition-all shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
               >
                 Clear OCR Cache
               </button>
             </div>
           </div>
-          
+
           {/* Footer */}
           <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
             <p className="text-xs text-gray-500 text-center">
-              Note: OCR requires downloading language data on first use. 
+              Note: OCR requires downloading language data on first use.
               This may fail in some network environments.
             </p>
           </div>

@@ -14,6 +14,8 @@ import GiftSuggestions from './components/Pages/GiftSuggestions';
 import Profiles from './components/Pages/Profiles';
 import Settings from './components/Pages/Settings';
 
+import { ThemeProvider } from './context/ThemeContext';
+
 function App() {
   useEffect(() => {
     // Initialize storage on app start
@@ -31,24 +33,26 @@ function App() {
 
   return (
     <Router>
-      <AlertProvider>
-        <div className="min-h-screen bg-gray-25 flex flex-col">
-          <Header />
-          <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/upload" element={<UploadCard />} />
-              <Route path="/confirm-profile" element={<ConfirmProfile />} />
-              <Route path="/gift-suggestions" element={<GiftSuggestions />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/profiles" element={<Profiles />} />
-              <Route path="/history" element={<History />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
-      </AlertProvider>
+      <ThemeProvider>
+        <AlertProvider>
+          <div className="min-h-screen bg-gray-25 dark:bg-gray-900 transition-colors duration-200 flex flex-col">
+            <Header />
+            <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/upload" element={<UploadCard />} />
+                <Route path="/confirm-profile" element={<ConfirmProfile />} />
+                <Route path="/gift-suggestions" element={<GiftSuggestions />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/profiles" element={<Profiles />} />
+                <Route path="/history" element={<History />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </main>
+            <Footer />
+          </div>
+        </AlertProvider>
+      </ThemeProvider>
     </Router>
   );
 }

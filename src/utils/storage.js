@@ -433,7 +433,7 @@ class GiftwiseStorage {
       totalGiftsGiven: history.length,
       storageUsage,
       lastBackup: this.getLastBackup(),
-      totalSpent: `$${totalSpent}`,
+      totalSpent: totalSpent,
       recentGifts: history.slice(-10).reverse(),
       topProfiles: profiles
         .sort((a, b) => (b.giftCount || 0) - (a.giftCount || 0))

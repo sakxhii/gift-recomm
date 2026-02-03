@@ -5,7 +5,7 @@ import { useAppStats } from '../../hooks/useLocalStorage';
 import storage from '../../utils/storage';
 import Card, { CardHeader, CardTitle, CardContent } from './Card';
 
-const StorageStatus = () => {
+const StorageStatus = ({ showManageButton = true }) => {
   const navigate = useNavigate();
   const { stats } = useAppStats();
   const [isExporting, setIsExporting] = useState(false);
@@ -83,7 +83,7 @@ const StorageStatus = () => {
           <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-500 ${stats.storageUsage.percentage < 60 ? 'bg-green-500' :
-                  stats.storageUsage.percentage < 85 ? 'bg-yellow-500' : 'bg-red-500'
+                stats.storageUsage.percentage < 85 ? 'bg-yellow-500' : 'bg-red-500'
                 }`}
               style={{ width: `${Math.min(stats.storageUsage.percentage, 100)}%` }}
             />
@@ -131,18 +131,20 @@ const StorageStatus = () => {
           <button
             onClick={handleExport}
             disabled={isExporting}
-            className="flex-1 btn btn-primary"
+            className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white text-sm font-semibold rounded-lg hover:from-primary-600 hover:to-primary-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 disabled:opacity-75 disabled:cursor-not-allowed"
           >
             <Download size={18} />
             {isExporting ? 'Exporting...' : 'Export All Data'}
           </button>
 
-          <button
-            className="flex-1 btn btn-secondary"
-            onClick={() => navigate('/settings')}
-          >
-            Manage Storage
-          </button>
+          {showManageButton && (
+            <button
+              className="flex-1 btn btn-secondary"
+              onClick={() => navigate('/settings')}
+            >
+              Manage Storage
+            </button>
+          )}
         </div>
 
         <p className="text-xs text-gray-500 mt-4 text-center">

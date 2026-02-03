@@ -3,7 +3,7 @@ import clsx from 'clsx';
 
 const Card = ({ children, className = '', onClick, hover = false }) => {
   return (
-    <div 
+    <div
       className={clsx(
         'card',
         hover && 'card-hover',
@@ -20,7 +20,7 @@ const Card = ({ children, className = '', onClick, hover = false }) => {
 export const CardHeader = ({ children, className = '', border = false }) => (
   <div className={clsx(
     'px-6 py-5',
-    border && 'border-b border-gray-200',
+    border && 'border-b border-gray-200 dark:border-gray-700',
     className
   )}>
     {children}
@@ -29,12 +29,12 @@ export const CardHeader = ({ children, className = '', border = false }) => (
 
 export const CardTitle = ({ children, className = '', size = 'md' }) => {
   const sizeClasses = {
-    sm: 'text-sm font-semibold text-gray-700',
-    md: 'text-base font-semibold text-gray-900',
-    lg: 'text-lg font-semibold text-gray-900',
-    xl: 'text-xl font-semibold text-gray-900'
+    sm: 'text-sm font-semibold text-gray-700 dark:text-gray-200',
+    md: 'text-base font-semibold text-gray-900 dark:text-white',
+    lg: 'text-lg font-semibold text-gray-900 dark:text-white',
+    xl: 'text-xl font-semibold text-gray-900 dark:text-white'
   };
-  
+
   return (
     <h3 className={clsx(sizeClasses[size], className)}>
       {children}
@@ -43,7 +43,7 @@ export const CardTitle = ({ children, className = '', size = 'md' }) => {
 };
 
 export const CardDescription = ({ children, className = '' }) => (
-  <p className={clsx('mt-1 text-sm text-gray-600', className)}>
+  <p className={clsx('mt-1 text-sm text-gray-600 dark:text-gray-400', className)}>
     {children}
   </p>
 );
@@ -57,7 +57,7 @@ export const CardContent = ({ children, className = '', padding = true }) => (
 export const CardFooter = ({ children, className = '', border = true }) => (
   <div className={clsx(
     'px-6 py-4',
-    border && 'border-t border-gray-200',
+    border && 'border-t border-gray-200 dark:border-gray-700',
     className
   )}>
     {children}
@@ -73,7 +73,7 @@ export const StatCard = ({ title, value, change, icon, color = 'primary' }) => {
     purple: 'bg-purple-50 text-purple-700',
     gray: 'bg-gray-50 text-gray-700'
   };
-  
+
   return (
     <Card className="p-5">
       <div className="flex items-center justify-between">
@@ -103,14 +103,14 @@ export const ActionCard = ({ title, description, icon, actionText, onClick, vari
     success: 'border-green-200 bg-green-50',
     warning: 'border-yellow-200 bg-yellow-50'
   };
-  
+
   const buttonClasses = {
-    primary: 'btn-primary',
-    secondary: 'btn-secondary',
-    success: 'bg-green-600 hover:bg-green-700 text-white',
-    warning: 'bg-yellow-600 hover:bg-yellow-700 text-white'
+    primary: 'py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-lg hover:from-primary-600 hover:to-primary-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5',
+    secondary: 'py-2.5 bg-white border border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 hover:text-primary-600 transition-all shadow-sm hover:shadow-md transform hover:-translate-y-0.5',
+    success: 'py-2.5 bg-gradient-to-r from-green-500 to-green-600 text-white font-medium rounded-lg hover:from-green-600 hover:to-green-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5',
+    warning: 'py-2.5 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-medium rounded-lg hover:from-yellow-600 hover:to-yellow-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5'
   };
-  
+
   return (
     <Card className={`border-2 ${variantClasses[variant]} hover:border-primary-300 transition-colors`}>
       <CardContent className="text-center">
@@ -124,7 +124,7 @@ export const ActionCard = ({ title, description, icon, actionText, onClick, vari
         {actionText && (
           <button
             onClick={onClick}
-            className={`mt-4 w-full btn ${buttonClasses[variant]}`}
+            className={`mt-4 w-full ${buttonClasses[variant]}`}
           >
             {actionText}
           </button>

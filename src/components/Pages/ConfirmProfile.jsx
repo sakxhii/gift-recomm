@@ -397,9 +397,9 @@ const ConfirmProfile = () => {
                   <button
                     type="button"
                     onClick={handleAddOccasion}
-                    className="btn btn-secondary"
+                    className="p-2.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg hover:from-primary-600 hover:to-primary-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                   >
-                    <Plus size={16} />
+                    <Plus size={20} />
                   </button>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
@@ -420,8 +420,8 @@ const ConfirmProfile = () => {
                       type="button"
                       onClick={() => handleInputChange('budgetRange', range.id)}
                       className={`p-3 rounded-lg border text-center transition-colors ${formData.budgetRange === range.id
-                          ? 'border-primary-500 bg-primary-50 text-primary-700'
-                          : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                        ? 'border-primary-500 bg-primary-50 text-primary-700'
+                        : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
                         }`}
                     >
                       <div className="font-medium">{range.label}</div>
@@ -465,9 +465,9 @@ const ConfirmProfile = () => {
                   <button
                     type="button"
                     onClick={handleAddInterest}
-                    className="btn btn-secondary"
+                    className="p-2.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg hover:from-primary-600 hover:to-primary-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                   >
-                    <Plus size={16} />
+                    <Plus size={20} />
                   </button>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
