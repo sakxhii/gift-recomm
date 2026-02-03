@@ -64,9 +64,11 @@ const Header = () => {
 
             <div className="flex items-center">
               <Link to="/" className="flex items-center">
-                <div className="h-10 w-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/30 transform hover:scale-105 transition-all duration-300">
-                  <Gift className="text-white h-6 w-6" strokeWidth={2.5} />
-                </div>
+                <img
+                  src={logo}
+                  alt="GiftWise AI Logo"
+                  className="h-10 w-auto object-contain drop-shadow-sm transition-transform hover:scale-105 duration-200"
+                />
                 <div className="ml-3 hidden sm:block">
                   <h1 className="text-xl font-bold text-gray-900 tracking-tight leading-none">GiftWise AI</h1>
                   <p className="text-xs text-gray-500 font-medium mt-1">Professional Gift Assistant</p>
